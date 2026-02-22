@@ -19,6 +19,7 @@ public class GameController extends KeyAdapter implements ActionListener {
     private long startTime;
     private Timer moveTimer;
     private Timer clockTimer;
+    private boolean paused; // 新增：暂停状态
 
     public GameController(GamePanel panel, GameFrame frame) {
         this.panel = panel;
@@ -36,6 +37,7 @@ public class GameController extends KeyAdapter implements ActionListener {
         interval = 200;
         food = new Food(snake.getBody());
         running = true;
+        paused = false; // 初始化暂停为 false
         startTime = System.currentTimeMillis();
         frame.updateScore(score);
     }
@@ -45,7 +47,7 @@ public class GameController extends KeyAdapter implements ActionListener {
         moveTimer.start();
 
         clockTimer = new Timer(1000, e -> {
-            if (running) {
+            if (running && !paused) { // 暂停时不计时
                 long seconds = (System.currentTimeMillis() - startTime) / 1000;
                 frame.updateTime(seconds);
             }
@@ -56,7 +58,7 @@ public class GameController extends KeyAdapter implements ActionListener {
     public void resetGame() {
         moveTimer.stop();
         clockTimer.stop();
-        initGame();
+        initGame(); // 会重置 paused = false
         startTimers();
         panel.repaint();
     }
@@ -66,7 +68,7 @@ public class GameController extends KeyAdapter implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!running) return;
+        if (!running || paused) return; // 暂停时也不移动
         move();
     }
 
@@ -145,6 +147,7 @@ public class GameController extends KeyAdapter implements ActionListener {
     private void gameOver(boolean isWin) {
         if (!running) return;
         running = false;
+        paused = false; // 游戏结束时清除暂停状态
         moveTimer.stop();
         clockTimer.stop();
 
@@ -161,7 +164,26 @@ public class GameController extends KeyAdapter implements ActionListener {
     // 键盘事件
     @Override
     public void keyPressed(KeyEvent e) {
-        if (!running) return;
+        // 空格键处理（暂停/继续）
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (!running) return; // 游戏已结束时无效
+            paused = !paused;
+            if (paused) {
+                moveTimer.stop();
+                clockTimer.stop();
+                // 可选：在窗口标题显示暂停状态（需 GameFrame 提供方法）
+                // frame.setTitle("贪吃蛇 - 暂停");
+            } else {
+                moveTimer.start();
+                clockTimer.start();
+                // frame.setTitle("贪吃蛇");
+            }
+            return; // 不再处理方向键
+        }
+
+        // 如果游戏暂停，忽略方向键
+        if (paused || !running) return;
+
         Direction newDir = null;
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP:    newDir = Direction.UP; break;
