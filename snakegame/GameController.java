@@ -161,7 +161,7 @@ public class GameController extends KeyAdapter implements ActionListener {
         JOptionPane.showMessageDialog(frame, message, "游戏结束", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // 键盘事件
+
     @Override
     public void keyPressed(KeyEvent e) {
         // 空格键处理（暂停/继续）
@@ -171,8 +171,6 @@ public class GameController extends KeyAdapter implements ActionListener {
             if (paused) {
                 moveTimer.stop();
                 clockTimer.stop();
-                // 可选：在窗口标题显示暂停状态（需 GameFrame 提供方法）
-                // frame.setTitle("贪吃蛇 - 暂停");
             } else {
                 moveTimer.start();
                 clockTimer.start();
@@ -181,7 +179,6 @@ public class GameController extends KeyAdapter implements ActionListener {
             return; // 不再处理方向键
         }
 
-        // 如果游戏暂停，忽略方向键
         if (paused || !running) return;
 
         Direction newDir = null;
